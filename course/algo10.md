@@ -18,6 +18,90 @@
 一个序列$a_{1},a_{2},\dots a_{n}$找到一个最长的$a_{i_{1}},a_{i_{2}},\dots a_{ik}$其中$1\leq i_{1}< i_{2}<\dots<i_{k}\leq n$。
 我们**打表**，再遍历每个表。思路见下图
 ![19a14745faf4c60bc26fc05d5b7000ff_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411132124157.png)
+
+事实上，对于最长递增子序列问题，我们很容易把时间写到$\mathcal{O}(n^{2})$，对于hard题并不可以通过，因为卡你时间。比如下面这道题目
+##### 354. 俄罗斯套娃信封问题
+如果我们用传统的最长递增子序列：
+```cpp
+class Solution {
+public:
+    int maxEnvelopes(vector<vector<int>>& envelopes) {
+        sort(envelopes.begin(), envelopes.end(), 
+        [](const vector<int> &envelope1, const vector<int> &envelope2) -> bool {
+            return envelope1[0] < envelope2[0] || (envelope1[0] == envelope2[0] && envelope1[1] < envelope2[1]);
+        });
+
+        int n = envelopes.size();
+        vector<int> dp(n, 1);
+
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                if (envelopes[i][0] > envelopes[j][0] && envelopes[i][1] > envelopes[j][1]) {
+                    dp[i] = max(dp[i], 1 + dp[j]);
+                }
+            }
+        }
+
+        int result = INT_MIN;
+        for (int i = 0; i < n; i++) {
+            result = max(result, dp[i]);
+        }
+
+        return result;
+    }
+};
+```
+##### 更优的写法：最长递增子序列用vector来写
+###### 最长递增子序列最优时间的模板！
+```cpp
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        vector<int> dp;
+
+        for (int num : nums) {
+            if (dp.empty() || num > dp.back()) {
+                dp.push_back(num);
+            } else {
+                auto iter = lower_bound(dp.begin(), dp.end(), num);
+                *iter = num;
+            }
+        }
+        return dp.size();
+    }
+};
+```
+我们也不要乱用二维`lambda`写了，很容易写错的hhh
+###### 这道题的解法
+```cpp
+class Solution {
+public:
+    int maxEnvelopes(vector<vector<int>>& envelopes) {
+        sort(envelopes.begin(), envelopes.end(), 
+        [](const vector<int> &envelope1, const vector<int> &envelope2) -> bool {
+            return envelope1[0] < envelope2[0] || (envelope1[0] == envelope2[0] && envelope1[1] > envelope2[1]);
+        });
+
+        int n = envelopes.size();
+        vector<int> dp(n, 1);
+
+        vector<int> d;
+        for (auto env : envelopes) {
+            int height = env[1];
+
+            if (d.empty() || height > d.back()) {
+                d.push_back(height);
+            } else {
+                auto iter = lower_bound(d.begin(), d.end(), height);
+                *iter = height;
+            }
+        }
+
+        return d.size();
+    }
+};
+```
+真别用二维lambda吧。。。。。。
 #### 概括一下前面的思路：
 为了解决一个问题，我们定义了一系列子问题$\{L(j)|1\leq j\leq n\}$。子问题有一个排序，一个关系式。L(j) = 1 + max{L(i) | (i, j) $\in$ E}。
 #### 编辑距离
@@ -309,3 +393,19 @@ public:
 ### 石头最少踩到的石子数
 ![image.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411132206556.png)
 显然初始化：等会再说吧，整理这么多题目跟资料我有点累了
+***
+### 课外的DP
+#### 状态机DP
+![408a9f05f3703e78ae5fe1f58d08e0cf_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411241453112.png)
+dfs(-1, 0) = 0，dfs(-1, 1) = -$\infty$
+$\begin{cases}dfs(i, 0)：未持有\\ dfs(i,1)：持有  \end{cases}$。有$\begin{cases}dfs(i,0)=\max(dfs(i-1,0),dfs(i-1,1)+price(i))\\ dfs(i,1)=max(dfs(i-1,1),dfs(i-1,0)-price(i))  \end{cases}$
+```python
+def dfs(i, hold):
+	if i < 0:
+		return -inf if hold else 0
+	if hold:
+		return max(dfs(i - 1, True), dfs(i - 2, False) - prices[i])
+	return max(dfs(i - 1, False), dfs(i - 1, True) + prices[i])
+
+return dfs(n - 1, False)
+```
