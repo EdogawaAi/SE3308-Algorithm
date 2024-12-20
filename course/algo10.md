@@ -71,7 +71,7 @@ public:
     }
 };
 ```
-我们也不要乱用二维`lambda`写了，很容易写错的hhh
+我们也不要乱用二维`lambda`写了，很容易写错的hhh。不熟悉的自己查一下lower_bound是什么！
 ###### 这道题的解法
 ```cpp
 class Solution {
@@ -105,7 +105,8 @@ public:
 #### 概括一下前面的思路：
 为了解决一个问题，我们定义了一系列子问题$\{L(j)|1\leq j\leq n\}$。子问题有一个排序，一个关系式。L(j) = 1 + max{L(i) | (i, j) $\in$ E}。
 #### 编辑距离
-![f495bd4278ef7524a842894c9508d5dc_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411132127064.png)
+![202411132127064.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202412201713309.png)
+
 这里，我们只会看左上角，左边和上面**三个位置**。打二维表！对应的leetcode题解如下：
 ```cpp
 class Solution {
@@ -272,10 +273,48 @@ public:
     }
 };
 ```
-~~好吧我不会hard题也不会做会员题，就选三道题熟悉一下吧~~
+~~好吧我居然会hard题，好耶！但是我没钱做会员题，再来一道题熟悉一下吧~~
+##### 1449.数位成本和为目标值的最大数字
+我写过题解了，我还画了一张示意图来讲解怎么打表来思考这道题
+![af276f29798fa4a4a07fd2dfdbe0d365.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202412201635513.png)
+根据我的表格，写一下代码就一遍过啦，其实不怎么hard了hhh
+```cpp
+class Solution {
+private:
+    string maxStr(const string& a, const string& b) {
+        if (a == "0") return b;
+        if (b == "0") return a;
+        if (a.length() != b.length()) {
+            return a.length() > b.length() ? a : b;
+        }
+        return a > b ? a : b;
+    }
+
+public:
+    string largestNumber(vector<int>& costs, int target) {
+        vector<string> dp(target + 1, "0");
+        unordered_map<int, int> values;
+        for (int i = 0; i < costs.size(); i++) {
+            values[costs[i]] = max(values[costs[i]], i + 1);
+        }
+        dp[0] = "";
+        for (int i = 1; i <= target; i++) {
+            for (auto &[cost, num]  : values) {
+                if (i >= cost && dp[i - cost] != "0") {
+                    string preNum = to_string(num) + dp[i - cost];
+                    string postNum = dp[i - cost] + to_string(num);
+                    dp[i] = maxStr(dp[i], maxStr(preNum, postNum));
+                }
+            }
+        }
+        return dp[target];
+    }
+};
+```
 #### 01背包
 ![d8d2acb8da392b2e8897efeb4da504a5_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411132157464.png)
 自己找题目😾
+
 ### 最长公共子序列与最长公共子串
 ![000629104200aa5c71fb3b7c407ccd46_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411132158493.png)
 找两个题目题解
@@ -395,17 +434,4 @@ public:
 显然初始化：等会再说吧，整理这么多题目跟资料我有点累了
 ***
 ### 课外的DP
-#### 状态机DP
-![408a9f05f3703e78ae5fe1f58d08e0cf_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202411241453112.png)
-dfs(-1, 0) = 0，dfs(-1, 1) = -$\infty$
-$\begin{cases}dfs(i, 0)：未持有\\ dfs(i,1)：持有  \end{cases}$。有$\begin{cases}dfs(i,0)=\max(dfs(i-1,0),dfs(i-1,1)+price(i))\\ dfs(i,1)=max(dfs(i-1,1),dfs(i-1,0)-price(i))  \end{cases}$
-```python
-def dfs(i, hold):
-	if i < 0:
-		return -inf if hold else 0
-	if hold:
-		return max(dfs(i - 1, True), dfs(i - 2, False) - prices[i])
-	return max(dfs(i - 1, False), dfs(i - 1, True) + prices[i])
-
-return dfs(n - 1, False)
-```
+![5cc743d419748767a07c4662dc5a86f4_720.png](https://hoshinocola-1324692752.cos.ap-shanghai.myqcloud.com/202412201523009.png)
